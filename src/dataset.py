@@ -11,11 +11,16 @@ class CastingBinaryDataset(Dataset):
         root_dir: str | Path,
         split: str = "train",
         transform: Optional[Callable] = None,
+        samples: Optional[list[tuple[Path, int]]] = None,
     ) -> None:
         self.root_dir = Path(root_dir)
         self.split = split
         self.transform = transform
         self.samples: list[tuple[Path, int]] = []
+
+        if samples is not None:
+            self.samples = samples
+            return
 
         split_dir = self.root_dir / split
 
