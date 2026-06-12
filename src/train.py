@@ -23,7 +23,7 @@ MODEL_DIR.mkdir(exist_ok=True)
 
 BATCH_SIZE = 16
 EPOCHS = 20
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 5e-5
 
 
 def build_model():
