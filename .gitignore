@@ -1,4 +1,33 @@
+# Virtual Environment
 venv/
-data/
+.env
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Datasets
+data/
+
+# Generated Outputs
+outputs/
+reports/
+
+# Embeddings
+embeddings/
+features/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db

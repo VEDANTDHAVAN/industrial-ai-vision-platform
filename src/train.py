@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import mlflow
+from mlflow import pytorch as mlflow_pytorch
 
 from pathlib import Path
 from tqdm import tqdm
@@ -227,134 +229,133 @@ def train():
 
     best_val_loss = float("inf")
 
-    print(f"\nUsing device: {DEVICE}")
-    print(f"Train samples: {len(train_dataset)}")
-    print(f"Validation samples: {len(val_dataset)}")
-    print(f"Test samples: {len(test_dataset)}")
-
-    for epoch in range(EPOCHS):
-
-        model.train()
-
-        running_loss = 0
-        correct = 0
-        total = 0
-
-        loop = tqdm(
-            train_loader,
-            desc=f"Epoch {epoch+1}/{EPOCHS}"
-        )
-
-        for images, labels in loop:
-
-            images = images.to(DEVICE)
-            labels = labels.to(DEVICE)
-
-            optimizer.zero_grad()
-
-            outputs = model(images)
-
-            loss = criterion(
-                outputs,
-                labels
-            )
-
-            loss.backward()
-
-            optimizer.step()
-
-            running_loss += loss.item()
-
-            _, predicted = torch.max(
-                outputs,
-                1
-            )
-
-            total += labels.size(0)
-
-            correct += (
-                predicted == labels
-            ).sum().item()
-
-            loop.set_postfix(
-                loss=running_loss / (loop.n + 1),
-                acc=100 * correct / total
-            )
-
-        train_loss = (
-            running_loss /
-            len(train_loader)
-        )
-
-        train_acc = (
-            100 * correct / total
-        )
-
-        val_loss, val_acc = evaluate(
-            model,
-            val_loader,
-            criterion
-        )
-
-        print(
-            f"\nEpoch {epoch+1}"
-        )
-
-        print(
-            f"Train Loss: {train_loss:.4f}"
-        )
-
-        print(
-            f"Train Acc: {train_acc:.2f}%"
-        )
-
-        print(
-            f"Val Loss: {val_loss:.4f}"
-        )
-
-        print(
-            f"Val Acc: {val_acc:.2f}%"
-        )
-
-        if val_loss < best_val_loss:
-
-            best_val_loss = val_loss
-
-            model_path = (
-                MODEL_DIR /
-                "best_v3_model.pth"
-            )
-
-            torch.save(
-                model.state_dict(),
-                model_path
-            )
-
-            print(
-                "Best model saved."
-            )
-
-        if early_stopping.step(
-            val_loss
-        ):
-            print(
-                "\nEarly stopping triggered."
-            )
-            break
-
-    print(
-        f"\nTraining complete."
+    mlflow.set_experiment(
+        "Casting_Defect_Detection"
     )
 
-    print(
-        f"Best validation loss: "
-        f"{best_val_loss:.4f}"
-    )
+    with mlflow.start_run(
+        run_name="resnet18_v3_augmentation"
+    ):
+        mlflow.log_params({
+            "model": "resnet18",
+            "batch_size": BATCH_SIZE,
+            "epochs": EPOCHS,
+            "learning_rate": LEARNING_RATE,
+            "optimizer": "Adam",
+            "train_samples": len(train_dataset),
+            "val_samples": len(val_dataset),
+            "test_samples": len(test_dataset)
+        })
 
-    print(
-        f"Model saved at: "
-        f"{MODEL_DIR/'best_v3_model.pth'}"
-    )
+        print(f"\nUsing device: {DEVICE}")
+        print(f"Train samples: {len(train_dataset)}")
+        print(f"Validation samples: {len(val_dataset)}")
+        print(f"Test samples: {len(test_dataset)}")
+
+        for epoch in range(EPOCHS):
+            model.train()
+
+            running_loss = 0
+            correct = 0
+            total = 0
+
+            loop = tqdm(
+                train_loader,
+                desc=f"Epoch {epoch+1}/{EPOCHS}"
+            )
+
+            for images, labels in loop:
+
+                images = images.to(DEVICE)
+                labels = labels.to(DEVICE)
+
+                optimizer.zero_grad()
+
+                outputs = model(images)
+
+                loss = criterion(
+                    outputs, labels
+                )
+
+                loss.backward()
+
+                optimizer.step()
+
+                running_loss += loss.item()
+
+                _, predicted = torch.max(
+                    outputs, 1
+                    )
+
+                total += labels.size(0)
+
+                correct += (
+                    predicted == labels
+                ).sum().item()
+
+                loop.set_postfix(
+                    loss=running_loss / (loop.n + 1),
+                    acc=100 * correct / total
+                )
+
+            train_loss = (
+                running_loss / len(train_loader)
+            )
+
+            train_acc = (
+                100 * correct / total
+            )
+
+            val_loss, val_acc = evaluate(
+                model, val_loader, criterion
+            )
+
+            print(f"\nEpoch {epoch+1}")
+
+            print(f"Train Loss: {train_loss:.4f}")
+
+            print(f"Train Acc: {train_acc:.2f}%")
+
+            print(f"Val Loss: {val_loss:.4f}")
+
+            print(f"Val Acc: {val_acc:.2f}%")
+
+            mlflow.log_metrics({
+                "train_loss": train_loss, "train_accuracy": train_acc,
+                "val_loss": val_loss, "val_accuracy": val_acc,
+            }, step=epoch)
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+
+                model_path = (MODEL_DIR / "best_v4_model.pth")
+
+                torch.save(model.state_dict(), model_path)
+
+                mlflow.log_metric("best_val_loss", best_val_loss)
+
+                print("Best model saved.")
+
+            if early_stopping.step(val_loss):
+                print("\nEarly stopping triggered.")
+                break
+
+        print(f"\nTraining complete.")
+
+        print(f"Best validation loss: "
+              f"{best_val_loss:.4f}"
+        )
+
+        print(f"Model saved at: "
+              f"{MODEL_DIR/'best_v4_model.pth'}"
+        )
+        print("Logging checkpoint artifact...")
+        mlflow.log_artifact(str(MODEL_DIR / "best_v3_model.pth"))
+
+        print("Logging PyTorch model...") 
+        mlflow_pytorch.log_model(pytorch_model=model, name="model")
+
+        print("Model logged successfully.")
 
 
 if __name__ == "__main__":
