@@ -353,9 +353,17 @@ def train():
         mlflow.log_artifact(str(MODEL_DIR / "best_v3_model.pth"))
 
         print("Logging PyTorch model...") 
-        mlflow_pytorch.log_model(pytorch_model=model, name="model")
+        logged_model = mlflow_pytorch.log_model(
+            pytorch_model=model, name="casting_defect_model"
+        )
 
-        print("Model logged successfully.")
+        print("Registering model...")
+        mlflow.register_model(
+            model_uri=logged_model.model_uri,
+            name="CastingDefectDetector"
+        )
+
+        print("Model registered successfully.")
 
 
 if __name__ == "__main__":
