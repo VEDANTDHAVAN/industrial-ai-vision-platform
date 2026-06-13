@@ -350,7 +350,7 @@ def train():
               f"{MODEL_DIR/'best_v4_model.pth'}"
         )
         print("Logging checkpoint artifact...")
-        mlflow.log_artifact(str(MODEL_DIR / "best_v3_model.pth"))
+        mlflow.log_artifact(str(MODEL_DIR / "best_v4_model.pth"))
 
         print("Logging PyTorch model...") 
         logged_model = mlflow_pytorch.log_model(

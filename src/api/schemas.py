@@ -1,0 +1,6 @@
+from pydantic import BaseModel
+
+class PredictionResponse(BaseModel):
+    prediction: str
+    confidence: float
+    model_version: str
