@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from typing import cast
 from pathlib import Path
 from torchvision import models, transforms
 from torch.utils.data import DataLoader
@@ -14,17 +14,31 @@ from dataset import CastingBinaryDataset
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-MODEL_PATH = Path("models/best_v5_model.pth")
+MODEL_PATH = Path("models/best_v6_efficientnet.pth")
 DATA_DIR = Path("data/casting_data/casting_data")
 DRIFTED_DATA_DIR = Path("data/")
 
 def build_model():
-    model = models.resnet18(weights=None)
-    in_features = model.fc.in_features
-    model.fc = nn.Linear(in_features, 2)
+    model = models.efficientnet_b0(
+        weights=None
+    )
+
+    classifier_layer = cast(
+        nn.Linear, model.classifier[1]
+    )
+
+    in_features = classifier_layer.in_features
+
+    model.classifier[1] = nn.Linear(
+        in_features,
+        2
+    )
 
     model.load_state_dict(
-        torch.load(MODEL_PATH, map_location=DEVICE)
+        torch.load(
+            MODEL_PATH,
+            map_location=DEVICE
+        )
     )
 
     model.to(DEVICE)
@@ -43,9 +57,6 @@ def get_transform():
     ])
 
 def analyze():
-    dataset = CastingBinaryDataset(
-        root_dir=DATA_DIR, split="test", transform=get_transform()
-    )
     drifted_dataset = CastingBinaryDataset(
         root_dir=DRIFTED_DATA_DIR, split="drifted_test", transform=get_transform()
     )

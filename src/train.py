@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import mlflow
 from mlflow import pytorch as mlflow_pytorch
-
+from typing import cast
 from pathlib import Path
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
@@ -27,13 +27,17 @@ LEARNING_RATE = 5e-5
 
 
 def build_model():
-    model = models.resnet18(
-        weights=models.ResNet18_Weights.DEFAULT
+    model = models.efficientnet_b0(
+        weights=models.EfficientNet_B0_Weights.DEFAULT
     )
 
-    in_features = model.fc.in_features
+    classifier_layer = cast(
+        nn.Linear, model.classifier[1]
+    )
 
-    model.fc = nn.Linear(
+    in_features = classifier_layer.in_features
+
+    model.classifier[1] = nn.Linear(
         in_features,
         2
     )
@@ -236,10 +240,10 @@ def train():
     )
 
     with mlflow.start_run(
-        run_name="resnet18_v5_augmentation"
+        run_name="efficientnet_b0_v6"
     ):
         mlflow.log_params({
-            "model": "resnet18",
+            "model": "efficientnet_b0",
             "batch_size": BATCH_SIZE,
             "epochs": EPOCHS,
             "learning_rate": LEARNING_RATE,
@@ -335,7 +339,7 @@ def train():
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
 
-                model_path = (MODEL_DIR / "best_v5_model.pth")
+                model_path = (MODEL_DIR / "best_v6_efficientnet.pth")
 
                 torch.save(model.state_dict(), model_path)
 
@@ -354,14 +358,14 @@ def train():
         )
 
         print(f"Model saved at: "
-              f"{MODEL_DIR/'best_v5_model.pth'}"
+              f"{MODEL_DIR/'best_v6_efficientnet.pth'}"
         )
         print("Logging checkpoint artifact...")
-        mlflow.log_artifact(str(MODEL_DIR / "best_v5_model.pth"))
+        mlflow.log_artifact(str(MODEL_DIR / "best_v6_efficientnet.pth"))
 
         print("Logging PyTorch model...") 
         logged_model = mlflow_pytorch.log_model(
-            pytorch_model=model, name="casting_defect_model"
+            pytorch_model=model, name="efficientnet_b0_v6_model"
         )
 
         print("Registering model...")

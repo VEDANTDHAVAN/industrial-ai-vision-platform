@@ -1,6 +1,7 @@
 import torch
 import numpy as np
-
+import torch.nn as nn
+from typing import cast
 from pathlib import Path
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
@@ -15,42 +16,42 @@ from dataset import CastingBinaryDataset
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 DATA_DIR = Path("data/casting_data/casting_data")
-MODEL_PATH = Path("models/best_v5_model.pth")
+MODEL_PATH = Path("models/best_v6_efficientnet.pth")
 
 def build_model():
-    model = models.resnet18(weights=None)
+    model = models.efficientnet_b0(
+        weights=None
+    )
 
-    in_features = model.fc.in_features
+    classifier_layer = cast(
+        nn.Linear, model.classifier[1]
+    )
 
-    model.fc = torch.nn.Linear(in_features, 2)
+    in_features = classifier_layer.in_features
+
+    model.classifier[1] = nn.Linear(
+        in_features,
+        2
+    )
 
     model.load_state_dict(
         torch.load(
-            MODEL_PATH, map_location=DEVICE
+            MODEL_PATH,
+            map_location=DEVICE
         )
     )
 
     model.to(DEVICE)
+    model.eval()
 
     return model
 
 def evaluate():
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(20),
-        transforms.ColorJitter(
-            brightness=0.4,
-            contrast=0.4,
-            saturation=0.2
-        ),
-        transforms.GaussianBlur(kernel_size=5),
-        transforms.RandomAdjustSharpness(
-            sharpness_factor=0.5, p=0.5
-        ),
         transforms.ToTensor(),
         transforms.Normalize(
-            mean=[0.485, 0.456, 0.406], 
+            mean=[0.485, 0.456, 0.406],
             std=[0.229, 0.224, 0.225]
         )
     ])
