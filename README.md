@@ -100,155 +100,294 @@ Severe Drift Detected
 
 ---
 
-## V4
+### Version 4 — ResNet18 + Augmentation + Early Stopping
 
-Production Pipeline
+#### Clean Test Dataset
 
-Implemented:
+| Metric    | Value   |
+| --------- | ------- |
+| Accuracy  | 99.72%  |
+| Precision | 100.00% |
+| Recall    | 99.56%  |
+| F1 Score  | 99.78%  |
 
-* MLflow Experiment Tracking
+Confusion Matrix:
+
+```text
+[[262   0]
+ [  2 451]]
+```
+
+#### Drifted Dataset
+
+| Metric    | Value  |
+| --------- | ------ |
+| Accuracy  | 60.56% |
+| Precision | 75.52% |
+| Recall    | 55.85% |
+| F1 Score  | 64.21% |
+
+Confusion Matrix:
+
+```text
+[[180  82]
+ [200 253]]
+```
+
+---
+
+### Version 5 — Improved ResNet18
+
+Improvements:
+
+* Better augmentations
+* Improved train/validation split
+* MLflow experiment tracking
+* Model Registry integration
+
+#### Drifted Dataset
+
+| Metric    | Value  |
+| --------- | ------ |
+| Accuracy  | 62.38% |
+| Precision | 73.83% |
+| Recall    | 62.91% |
+| F1 Score  | 67.94% |
+
+Confusion Matrix:
+
+```text
+[[161 101]
+ [168 285]]
+```
+
+Result:
+
+* Improved drift robustness over V4.
+* Still struggled under severe domain shift.
+
+---
+
+### Version 6 — EfficientNet-B0
+
+Objective:
+
+* Improve feature extraction capability.
+* Increase robustness to unseen image distributions.
+
+#### Clean Test Dataset
+
+| Metric    | Value   |
+| --------- | ------- |
+| Accuracy  | 99.72%  |
+| Precision | 100.00% |
+| Recall    | 99.56%  |
+| F1 Score  | 99.78%  |
+
+Confusion Matrix:
+
+```text
+[[262   0]
+ [  2 451]]
+```
+
+#### Drifted Dataset
+
+| Metric    | Value  |
+| --------- | ------ |
+| Accuracy  | 62.94% |
+| Precision | 63.95% |
+| Recall    | 95.14% |
+| F1 Score  | 76.49% |
+
+Confusion Matrix:
+
+```text
+[[ 19 243]
+ [ 22 431]]
+```
+
+Observations:
+
+* Highest defect recall achieved.
+* Very aggressive defect prediction behavior.
+* Large number of false positives.
+* Best overall defect detector under drift.
+
+#### Confidence Analysis
+
+Accuracy: 62.94%
+
+Average Confidence (Correct): 0.9850
+
+Average Confidence (Wrong): 0.9909
+
+Observation:
+
+The model was highly overconfident and often more confident when wrong than when correct.
+
+---
+
+### Version 7 — EfficientNet-B0 + Focal Loss
+
+Objective:
+
+* Improve probability calibration.
+* Reduce overconfidence under drift.
+
+#### Clean Test Dataset
+
+| Metric    | Value   |
+| --------- | ------- |
+| Accuracy  | 99.72%  |
+| Precision | 100.00% |
+| Recall    | 99.56%  |
+| F1 Score  | 99.78%  |
+
+Confusion Matrix:
+
+```text
+[[262   0]
+ [  2 451]]
+```
+
+#### Drifted Dataset
+
+| Metric    | Value  |
+| --------- | ------ |
+| Accuracy  | 58.60% |
+| Precision | 62.68% |
+| Recall    | 85.65% |
+| F1 Score  | 72.39% |
+
+Confusion Matrix:
+
+```text
+[[ 31 231]
+ [ 65 388]]
+```
+
+#### Confidence Analysis
+
+Accuracy: 58.60%
+
+Average Confidence (Correct): 0.8311
+
+Average Confidence (Wrong): 0.8198
+
+Observations:
+
+* Calibration improved significantly.
+* Correct predictions became more confident than incorrect predictions.
+* Reduced model overconfidence.
+* Defect detection performance decreased compared to V6.
+
+Conclusion:
+
+Focal Loss improved calibration but reduced defect recall and overall drift performance.
+
+---
+
+## Current Production Candidate
+
+Model:
+
+```text
+models/best_v6_efficientnet.pth
+```
+
+Reason:
+
+* Highest drift robustness achieved so far.
+* Highest defect recall (95.14%).
+* Lowest defect escape rate.
+* Most suitable model for industrial quality inspection.
+
+---
+
+## Monitoring System
+
+Implemented Features:
+
+* Prediction logging to CSV
+* Confidence monitoring
+* Manual review tracking
+* Drift performance analysis
+* MLflow experiment tracking
 * MLflow Model Registry
-* FastAPI Inference Service
-* Prediction Logging
-* Monitoring Dashboard
-* Confidence Monitoring
+* FastAPI inference service
+* Production-ready prediction endpoint
 
-Model Registry:
+Example Monitoring Report:
 
-CastingDefectDetector
+```text
+=== MONITORING REPORT ===
 
-Registered Version:
+Total Predictions: 20
 
-Version 1
+Average Confidence: 0.7297
 
-Inference Endpoint:
+Manual Review Rate: 100%
 
-POST /predict
+ALERT: Confidence drop detected
 
-Prediction Logging:
+ALERT: Excessive manual reviews
 
-logs/predictions.csv
-
----
-
-## V5
-
-Robustness Improvement
-
-Implemented:
-
-* Strong Data Augmentation
-* Label Smoothing
-* Cosine Annealing Learning Rate Scheduler
-* Early Stopping
-
-Goal:
-
-Improve performance under domain drift.
+RETRAINING RECOMMENDED
+```
 
 ---
 
-# Performance Results
+## Lessons Learned
 
-## Clean Test Dataset
+1. Clean dataset accuracy above 99% does not guarantee robustness under distribution shift.
 
-Model:
+2. EfficientNet-B0 improved defect detection substantially under drift.
 
-V5
+3. Focal Loss improved calibration but reduced industrial inspection performance.
 
-Accuracy:
+4. Domain shift remains the primary challenge.
 
-99.72%
-
-Precision:
-
-100.00%
-
-Recall:
-
-99.56%
-
-F1 Score:
-
-99.78%
-
-Confusion Matrix:
-
-[[262, 0],
-[2, 451]]
+5. Monitoring and retraining pipelines are essential for production AI systems.
 
 ---
 
-## Drifted Dataset
+Current Status: Phase 6 Complete ✅
 
-Model:
+Completed:
+- Dataset Pipeline
+- Training Pipeline
+- Evaluation Pipeline
+- Drift Detection
+- Confidence Analysis
+- MLflow Tracking
+- Model Registry
+- FastAPI Inference API
+- Prediction Logging
+- Monitoring Dashboard
 
-V5
+Current Best Model:
+best_v6_efficientnet.pth
 
-Accuracy:
+## Next Milestone (V8)
 
-62.38%
+Objective:
 
-Precision:
+Improve robustness against unseen visual distributions.
 
-73.83%
+Planned Techniques:
 
-Recall:
+* MixUp Augmentation
+* Confidence Calibration
+* Threshold Optimization
+* Additional Drift Testing
 
-62.91%
+Target Metrics:
 
-F1 Score:
-
-67.94%
-
-Confusion Matrix:
-
-[[161, 101],
-[168, 285]]
-
----
-
-# Confidence Analysis
-
-## Original Dataset
-
-Accuracy:
-
-99.58%
-
-Average Confidence (Correct):
-
-0.9951
-
-Average Confidence (Wrong):
-
-0.6937
-
-Observation:
-
-Strong confidence separation.
-
----
-
-## Drifted Dataset
-
-Accuracy:
-
-63.92%
-
-Average Confidence (Correct):
-
-0.6384
-
-Average Confidence (Wrong):
-
-0.6086
-
-Observation:
-
-Model becomes uncertain under domain drift.
-
----
+* Drift Accuracy > 70%
+* Recall > 90%
+* Reduced False Positives
+* Improved Production Stability
 
 # Monitoring System
 

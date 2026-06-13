@@ -14,7 +14,7 @@ from drift_dataset import DriftDataset
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 DATA_DIR = Path("data/drifted_test")
-MODEL_PATH = Path("models/best_v6_efficientnet.pth")
+MODEL_PATH = Path("models/best_v7_focal_loss.pth")
 
 def build_model():
     model = models.efficientnet_b0(weights=None)

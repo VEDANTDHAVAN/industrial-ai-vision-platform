@@ -14,7 +14,7 @@ from dataset import CastingBinaryDataset
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-MODEL_PATH = Path("models/best_v6_efficientnet.pth")
+MODEL_PATH = Path("models/best_v7_focal_loss.pth")
 DATA_DIR = Path("data/casting_data/casting_data")
 DRIFTED_DATA_DIR = Path("data/")
 

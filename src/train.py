@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 
 from dataset import CastingBinaryDataset
 from utils.early_stopping import EarlyStopping
+from utils.focal_loss import FocalLoss
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -220,7 +221,7 @@ def train():
 
     model = build_model()
 
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    criterion = FocalLoss(alpha=1.0, gamma=2.0)
 
     optimizer = optim.Adam(
         model.parameters(),
@@ -240,10 +241,10 @@ def train():
     )
 
     with mlflow.start_run(
-        run_name="efficientnet_b0_v6"
+        run_name="efficientnet_b0_v7_focal_loss"
     ):
         mlflow.log_params({
-            "model": "efficientnet_b0",
+            "model": "efficientnet_b0_focal",
             "batch_size": BATCH_SIZE,
             "epochs": EPOCHS,
             "learning_rate": LEARNING_RATE,
@@ -339,7 +340,7 @@ def train():
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
 
-                model_path = (MODEL_DIR / "best_v6_efficientnet.pth")
+                model_path = (MODEL_DIR / "best_v7_focal_loss.pth")
 
                 torch.save(model.state_dict(), model_path)
 
@@ -358,14 +359,14 @@ def train():
         )
 
         print(f"Model saved at: "
-              f"{MODEL_DIR/'best_v6_efficientnet.pth'}"
+              f"{MODEL_DIR/'best_v7_focal_loss.pth'}"
         )
         print("Logging checkpoint artifact...")
-        mlflow.log_artifact(str(MODEL_DIR / "best_v6_efficientnet.pth"))
+        mlflow.log_artifact(str(MODEL_DIR / "best_v7_focal_loss.pth"))
 
         print("Logging PyTorch model...") 
         logged_model = mlflow_pytorch.log_model(
-            pytorch_model=model, name="efficientnet_b0_v6_model"
+            pytorch_model=model, name="efficientnet_b0_v7_model"
         )
 
         print("Registering model...")
