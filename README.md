@@ -1,390 +1,400 @@
 # Industrial AI Vision Platform
 
-Production-oriented Computer Vision system for Automated Casting Defect Detection using Deep Learning, Explainable AI, Robustness Engineering, and Drift Monitoring.
-
----
-
 ## Overview
 
-Industrial AI Vision Platform is an end-to-end Machine Learning project that detects defects in casting products using Computer Vision.
+Industrial AI Vision Platform is an end-to-end computer vision system for automated casting defect detection.
 
-The project goes beyond simple image classification and demonstrates real-world ML Engineering practices including:
+The platform includes:
 
-* Transfer Learning
-* Feature Embedding Extraction
+* Deep Learning model training
 * Explainable AI (Grad-CAM)
-* Cross Validation
-* Data Drift Simulation
 * Drift Detection
-* Robustness Engineering
-* Early Stopping
-* Model Versioning
-
-The goal is to mimic challenges faced by production AI systems deployed in manufacturing environments.
-
----
-
-## Business Problem
-
-Manual inspection of casting products is:
-
-* Slow
-* Expensive
-* Inconsistent
-* Error-prone
-
-Defective products may pass inspection while good products may be rejected.
-
-This platform automates defect detection using Deep Learning and provides explainable predictions for quality assurance teams.
+* Model Monitoring
+* MLflow Experiment Tracking
+* Model Registry
+* FastAPI Inference API
+* Prediction Logging
+* Confidence Analysis
+* Production Monitoring
 
 ---
 
-## Dataset
+# Project Architecture
 
-### Casting Product Image Dataset
+Dataset → Training Pipeline → Model Registry → FastAPI Inference → Prediction Logging → Monitoring → Drift Detection → Retraining
+
+---
+
+# Dataset
+
+Casting Product Image Dataset
 
 Classes:
 
-| Class             | Label |
-| ----------------- | ----- |
-| OK Product        | 0     |
-| Defective Product | 1     |
+* OK
+* Defective
 
-Dataset Structure:
+Training Images: 5306
 
-```text
-data/
-└── casting_data/
-    └── casting_data/
-        ├── train/
-        │   ├── ok_front/
-        │   └── def_front/
-        │
-        └── test/
-            ├── ok_front/
-            └── def_front/
-```
+Test Images: 715
 
-Training Samples:
+Image Size:
 
-* Good Castings: 2875
-* Defective Castings: 3758
-
-Test Samples:
-
-* Good Castings: 262
-* Defective Castings: 453
+224 × 224
 
 ---
 
-## Project Architecture
+# Model Versions
 
-```text
-Industrial AI Vision Platform
-│
-├── Data Pipeline
-│
-├── Dataset Loader
-│
-├── Transfer Learning
-│   └── ResNet18
-│
-├── Training Pipeline
-│
-├── Feature Embedding Extraction
-│
-├── Explainable AI
-│   └── Grad-CAM
-│
-├── Cross Validation
-│
-├── Drift Simulation
-│
-├── Drift Detection
-│
-├── Robust Training
-│
-└── Evaluation
-```
+## V1
+
+Baseline ResNet18
+
+Features:
+
+* Transfer Learning
+* Binary Classification
+
+Outcome:
+
+Strong baseline performance on clean test data.
 
 ---
 
-## Tech Stack
+## V2
 
-### Machine Learning
+Explainable AI
 
-* PyTorch
-* Torchvision
-* NumPy
-* Scikit-Learn
+Implemented:
 
-### Visualization
+* Grad-CAM
+* Defect Localization
 
-* Matplotlib
-* OpenCV
+Outcome:
 
-### Development
-
-* Python
-* VS Code
+Verified model focuses on defect regions instead of irrelevant image areas.
 
 ---
 
-## Implemented Features
+## V3
 
-### 1. Transfer Learning
+Monitoring Foundations
+
+Implemented:
+
+* Embedding Extraction
+* Feature Monitoring
+* Drift Detection
+
+Outcome:
+
+Successfully detected severe domain drift.
+
+Embedding Drift Distance:
+
+19.288
+
+Status:
+
+Severe Drift Detected
+
+---
+
+## V4
+
+Production Pipeline
+
+Implemented:
+
+* MLflow Experiment Tracking
+* MLflow Model Registry
+* FastAPI Inference Service
+* Prediction Logging
+* Monitoring Dashboard
+* Confidence Monitoring
+
+Model Registry:
+
+CastingDefectDetector
+
+Registered Version:
+
+Version 1
+
+Inference Endpoint:
+
+POST /predict
+
+Prediction Logging:
+
+logs/predictions.csv
+
+---
+
+## V5
+
+Robustness Improvement
+
+Implemented:
+
+* Strong Data Augmentation
+* Label Smoothing
+* Cosine Annealing Learning Rate Scheduler
+* Early Stopping
+
+Goal:
+
+Improve performance under domain drift.
+
+---
+
+# Performance Results
+
+## Clean Test Dataset
 
 Model:
 
-* ResNet18 (ImageNet Pretrained)
-
-Benefits:
-
-* Faster convergence
-* Better feature extraction
-* Reduced training time
-
----
-
-### 2. Feature Embedding Extraction
-
-Deep features are extracted from the penultimate layer of ResNet18.
-
-Output:
-
-```text
-Embedding Shape:
-(715, 512)
-```
-
-Applications:
-
-* Similarity Search
-* Clustering
-* Drift Detection
-* Anomaly Detection
-
----
-
-### 3. K-Fold Cross Validation
-
-Implemented 5-Fold Cross Validation.
-
-Results:
+V5
 
 Accuracy:
 
-```text
-Mean = 99.58%
-Std  = 0.34%
-```
+99.72%
+
+Precision:
+
+100.00%
+
+Recall:
+
+99.56%
 
 F1 Score:
 
-```text
-Mean = 99.67%
-```
+99.78%
 
-Observation:
+Confusion Matrix:
 
-Model generalizes consistently across folds.
+[[262, 0],
+[2, 451]]
 
 ---
 
-### 4. Explainable AI (Grad-CAM)
+## Drifted Dataset
 
-Implemented custom Grad-CAM visualization.
+Model:
+
+V5
+
+Accuracy:
+
+62.38%
+
+Precision:
+
+73.83%
+
+Recall:
+
+62.91%
+
+F1 Score:
+
+67.94%
+
+Confusion Matrix:
+
+[[161, 101],
+[168, 285]]
+
+---
+
+# Confidence Analysis
+
+## Original Dataset
+
+Accuracy:
+
+99.58%
+
+Average Confidence (Correct):
+
+0.9951
+
+Average Confidence (Wrong):
+
+0.6937
+
+Observation:
+
+Strong confidence separation.
+
+---
+
+## Drifted Dataset
+
+Accuracy:
+
+63.92%
+
+Average Confidence (Correct):
+
+0.6384
+
+Average Confidence (Wrong):
+
+0.6086
+
+Observation:
+
+Model becomes uncertain under domain drift.
+
+---
+
+# Monitoring System
+
+Current Monitoring Metrics:
+
+* Prediction Counts
+* Average Confidence
+* Manual Review Rate
+* Confidence Drop Alerts
+* Retraining Alerts
+
+Sample Monitoring Output:
+
+Average Confidence: 0.7297
+
+Manual Review Rate: 100%
+
+Alerts:
+
+* Confidence Drop Detected
+* Excessive Manual Reviews
+* Retraining Recommended
+
+---
+
+# MLflow Tracking
+
+Tracked Parameters:
+
+* Learning Rate
+* Batch Size
+* Optimizer
+* Epochs
+* Dataset Sizes
+
+Tracked Metrics:
+
+* Train Loss
+* Validation Loss
+* Train Accuracy
+* Validation Accuracy
+* Best Validation Loss
+
+Tracked Artifacts:
+
+* Model Checkpoints
+* Registered Models
+
+---
+
+# Explainability
+
+Implemented:
+
+Grad-CAM
 
 Capabilities:
 
-* Highlights defect regions
-* Explains model decisions
-* Improves trustworthiness
+* Visual Defect Localization
+* Prediction Validation
+* Model Auditing
 
-Example Output:
+Outcome:
 
-```text
-Prediction: Defective
-Confidence: 1.00
-
-Heatmap correctly focused on defect region.
-```
+Heatmaps focus on actual defect regions.
 
 ---
 
-### 5. Data Drift Simulation
+# Drift Detection
 
-Simulated real-world production challenges:
+Implemented:
 
-* Brightness shifts
-* Blur
-* Noise
-* Sharpness degradation
+Embedding-Based Drift Detection
 
-Purpose:
+Current Drift Distance:
 
-Evaluate model robustness under changing environmental conditions.
+19.288
 
----
+Status:
 
-### 6. Embedding Drift Detection
+Severe Drift Detected
 
-Compared embeddings from:
+Action:
 
-* Original Dataset
-* Drifted Dataset
-
-Result:
-
-```text
-Embedding Drift Distance:
-19.288208
-```
-
-Interpretation:
-
-Severe feature distribution shift detected.
+Retraining Recommended
 
 ---
 
-### 7. Robustness Engineering (V3 Pipeline)
+# Current Challenges
 
-Added:
+Primary Challenge:
 
-* Stratified Train/Validation Split
-* Probabilistic Data Augmentation
-* Early Stopping
-* Best Model Checkpointing
+Generalization to drifted real-world production images.
 
-Augmentations:
+Current Gap:
 
-* Horizontal Flip
-* Rotation
-* Blur
-* Contrast Shift
-* Brightness Shift
-* Sharpness Variation
+Clean Accuracy:
 
----
+99.72%
 
-### 8. Early Stopping
+Drift Accuracy:
 
-Prevents overfitting by stopping training when validation performance stops improving.
+62.38%
 
-Configuration:
+Accuracy Gap:
 
-```python
-patience = 5
-```
+37.34%
 
 ---
 
-### 9. Model Checkpointing
+# Next Milestone (V6)
 
-Automatically saves the best-performing model.
+Objectives:
 
-Output:
+* Replace ResNet18 with EfficientNet-B0
+* Improve drift robustness
+* Increase drift accuracy beyond 75%
+* Reduce manual review rate
+* Improve confidence separation under drift
 
-```text
-models/best_v3_model.pth
-```
+Target Metrics:
 
----
+Clean Accuracy > 99%
 
-## Model Performance
+Drift Accuracy > 75%
 
-### Clean Test Set
+Manual Review Rate < 30%
 
-| Metric    | Value   |
-| --------- | ------- |
-| Accuracy  | 99.58%  |
-| Precision | 100.00% |
-| Recall    | 99.34%  |
-| F1 Score  | 99.67%  |
-
-Confusion Matrix:
-
-```text
-[[262   0]
- [  3 450]]
-```
+Confidence Gap > 0.10
 
 ---
 
-## Drifted Test Set (Baseline)
+# Technology Stack
 
-| Metric   | Value  |
-| -------- | ------ |
-| Accuracy | 47.27% |
-| Recall   | 17.44% |
-| F1 Score | 29.53% |
-
-Observation:
-
-Severe performance degradation under production drift.
+Python, PyTorch, TorchVision, 
+FastAPI, MLflow, Pandas, NumPy
+Scikit-Learn, OpenCV Matplotlib
 
 ---
 
-## Drifted Test Set (Robust V3 Model)
+# Project Status
 
-| Metric    | Value  |
-| --------- | ------ |
-| Accuracy  | 60.56% |
-| Precision | 75.52% |
-| Recall    | 55.85% |
-| F1 Score  | 64.21% |
+Current Stage:
 
-Confusion Matrix:
+Production-Oriented Industrial Computer Vision System
 
-```text
-[[180  82]
- [200 253]]
-```
+Progress:
 
-Improvement:
-
-* Recall improved from 17.44% → 55.85%
-* Defect detection significantly more robust
-
----
-
-## Key Learnings
-
-This project demonstrates:
-
-* Production ML Pipelines
-* Transfer Learning
-* Explainable AI
-* Drift Monitoring
-* Robustness Engineering
-* Validation Strategies
-* Model Generalization
-
-The focus is not only achieving high accuracy but ensuring reliability under real-world deployment conditions.
-
----
-
-## Future Improvements
-
-* MLflow Experiment Tracking
-* Model Registry
-* Hyperparameter Optimization
-* ONNX Export
-* FastAPI Deployment
-* Dockerization
-* Kubernetes Deployment
-* Real-Time Video Inspection
-* Active Learning Pipeline
-
----
-
-## Author
-
-Vedant Dhavan
-
-Aspiring Agentic AI & Machine Learning Engineer focused on:
-
-* Computer Vision
-* MLOps
-* AI Systems
-* Production Machine Learning
+Approximately 80% complete toward a deployable MLOps-enabled defect detection platform.

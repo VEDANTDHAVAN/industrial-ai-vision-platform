@@ -14,7 +14,7 @@ from drift_dataset import DriftDataset
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 DATA_DIR = Path("data/drifted_test")
-MODEL_PATH = Path("models/defect_resnet18.pth")
+MODEL_PATH = Path("models/best_v5_model.pth")
 
 def build_model():
     model = models.resnet18(weights=None)

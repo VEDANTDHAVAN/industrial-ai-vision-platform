@@ -15,7 +15,7 @@ from dataset import CastingBinaryDataset
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 DATA_DIR = Path("data/casting_data/casting_data")
-MODEL_PATH = Path("models/defect_resnet18.pth")
+MODEL_PATH = Path("models/best_v5_model.pth")
 
 def build_model():
     model = models.resnet18(weights=None)

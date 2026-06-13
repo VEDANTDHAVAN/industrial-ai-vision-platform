@@ -48,26 +48,26 @@ def get_transforms():
 
         transforms.RandomHorizontalFlip(p=0.5),
 
-        transforms.RandomRotation(10),
+        transforms.RandomRotation(15),
 
-        transforms.RandomApply([
-            transforms.ColorJitter(
-                brightness=0.3,
-                contrast=0.3
-            )
-        ], p=0.3),
+        transforms.ColorJitter(
+            brightness=0.5, contrast=0.5,
+            saturation=0.3
+        ),
+
+        transforms.RandomAutocontrast(p=0.3),
+
+        transforms.RandomEqualize(p=0.2),
 
         transforms.RandomApply([
             transforms.GaussianBlur(
-                kernel_size=3
+                kernel_size=5
             )
-        ], p=0.2),
+        ], p=0.4),
 
-        transforms.RandomApply([
-            transforms.RandomAdjustSharpness(
-                sharpness_factor=0.7
-            )
-        ], p=0.2),
+        transforms.RandomAdjustSharpness(
+            sharpness_factor=0.5, p=0.4
+        ),
 
         transforms.ToTensor(),
 
@@ -216,12 +216,14 @@ def train():
 
     model = build_model()
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
 
     optimizer = optim.Adam(
         model.parameters(),
         lr=LEARNING_RATE
     )
+
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
 
     early_stopping = EarlyStopping(
         patience=5
@@ -234,7 +236,7 @@ def train():
     )
 
     with mlflow.start_run(
-        run_name="resnet18_v3_augmentation"
+        run_name="resnet18_v5_augmentation"
     ):
         mlflow.log_params({
             "model": "resnet18",
@@ -310,6 +312,8 @@ def train():
                 model, val_loader, criterion
             )
 
+            scheduler.step()
+
             print(f"\nEpoch {epoch+1}")
 
             print(f"Train Loss: {train_loss:.4f}")
@@ -320,15 +324,18 @@ def train():
 
             print(f"Val Acc: {val_acc:.2f}%")
 
+            current_lr = optimizer.param_groups[0]["lr"]
+
             mlflow.log_metrics({
                 "train_loss": train_loss, "train_accuracy": train_acc,
                 "val_loss": val_loss, "val_accuracy": val_acc,
+                "learning_rate": current_lr
             }, step=epoch)
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
 
-                model_path = (MODEL_DIR / "best_v4_model.pth")
+                model_path = (MODEL_DIR / "best_v5_model.pth")
 
                 torch.save(model.state_dict(), model_path)
 
@@ -347,10 +354,10 @@ def train():
         )
 
         print(f"Model saved at: "
-              f"{MODEL_DIR/'best_v4_model.pth'}"
+              f"{MODEL_DIR/'best_v5_model.pth'}"
         )
         print("Logging checkpoint artifact...")
-        mlflow.log_artifact(str(MODEL_DIR / "best_v4_model.pth"))
+        mlflow.log_artifact(str(MODEL_DIR / "best_v5_model.pth"))
 
         print("Logging PyTorch model...") 
         logged_model = mlflow_pytorch.log_model(
